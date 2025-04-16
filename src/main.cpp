@@ -1,8 +1,8 @@
 #ifdef _WIN32
 #include <windows.h>
+#include <SDL_main.h>
 #endif
 
-#include <SDL.h>
 #include <glm/glm.hpp>
 #include <string>
 #include <fstream>
