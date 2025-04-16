@@ -2,6 +2,7 @@
 #include <windows.h>
 #endif
 
+#include <SDL.h>
 #include <glm/glm.hpp>
 #include <string>
 #include <fstream>
