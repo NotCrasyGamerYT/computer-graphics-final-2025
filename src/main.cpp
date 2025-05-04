@@ -7,6 +7,8 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <fstream>
+#include <vector>
+#include <cstdlib>
 #include "Canis/Canis.hpp"
 #include "Canis/Entity.hpp"
 #include "Canis/Graphics.hpp"
@@ -29,6 +31,41 @@ using namespace glm;
 
 // 3d array
 std::vector<std::vector<std::vector<unsigned int>>> map = {};
+
+// --- Fire animation globals ---
+static std::vector<Canis::GLTexture> g_fireTextures;
+static float g_fireFrameTime    = 0.8f;   // seconds per animation frame
+static float g_fireAccumulator  = 0.0f;
+static int   g_fireCurrentFrame = 0;
+
+// --- Fire light flicker globals ---
+static std::vector<Canis::PointLight> g_fireLights;
+static float g_lightFlickerSpeed       = 10.0f; // how fast flicker oscillates
+
+// Animate both texture and light flicker
+void AnimateFire(Canis::World &world, Canis::Entity &entity, float deltaTime)
+{
+    // --- Texture flipbook ---
+    g_fireAccumulator += deltaTime;
+    if (g_fireAccumulator >= g_fireFrameTime)
+    {
+        g_fireAccumulator -= g_fireFrameTime;
+        g_fireCurrentFrame = (g_fireCurrentFrame + 1) % (int)g_fireTextures.size();
+        entity.albedo = &g_fireTextures[g_fireCurrentFrame];
+    }
+
+    // --- Light flicker (per-light) ---
+    for (auto &light : g_fireLights)
+    {
+        // simple flicker: sine wave + random jitter
+        float base    = 1.0f;
+        float jitter  = (rand() % 100) / 100.0f * 0.3f - 0.15f; // ±15%
+        float flicker = base + jitter;
+        light.diffuse = vec3(flicker);
+    }
+
+    // Note: World must reference g_fireLights by reference or pointer.
+}
 
 // declaring functions
 void SpawnLights(Canis::World &_world);
@@ -104,11 +141,15 @@ int main(int argc, char* argv[])
     Canis::GLTexture grasssideTexture = Canis::LoadImageGL("assets/textures/grass_block_side.png", true);
     Canis::GLTexture grasstopTexture = Canis::LoadImageGL("assets/textures/grass_block_top.png", true);
     Canis::GLTexture stoneTexture = Canis::LoadImageGL("assets/textures/stone.png", true);
+
+for (int i = 1; i <= 5; ++i)
+        g_fireTextures.push_back(Canis::LoadImageGL("assets/textures/fire_" + std::to_string(i) + ".png", true));
     /// End of Image Loading
 
     /// Load Models
     Canis::Model cubeModel = Canis::LoadModel("assets/models/cube.obj");
     Canis::Model grassModel = Canis::LoadModel("assets/models/plants.obj");
+    Canis::Model fireModel = Canis::LoadModel("assets/models/fire.obj");
     /// END OF LOADING MODEL
 
     // Load Map into 3d array
@@ -190,6 +231,33 @@ int main(int argc, char* argv[])
                     entity.transform.position = vec3(x + 0.0f, y + 0.0f, z + 0.0f);
                     world.Spawn(entity);
                     break;
+	     case 8: // animated fire + flickering light
+        {
+            // Fire entity
+            Canis::Entity fireEnt;
+            fireEnt.active = true;
+            fireEnt.tag    = "fire";
+            fireEnt.albedo = &g_fireTextures[0];
+            fireEnt.specular = &textureSpecular;
+            fireEnt.model    = &fireModel;
+            fireEnt.shader   = &shader;
+            fireEnt.transform.position = vec3(x, y, z);
+            fireEnt.Update   = &AnimateFire;
+            world.Spawn(fireEnt);
+
+            // Corresponding point light for flicker
+            Canis::PointLight pl;
+            pl.position   = vec3(x, y + 0.5f, z);
+            pl.ambient    = vec3(0.2f, 0.1f, 0.0f);
+            pl.diffuse    = vec3(1.0f, 0.5f, 0.2f);
+            pl.specular   = vec3(1.0f);
+            pl.constant   = 1.0f;
+            pl.linear     = 0.07f;
+            pl.quadratic  = 0.017f;
+            world.SpawnPointLight(pl);
+            g_fireLights.push_back(pl);
+        }
+            break;
                 default:
                     break;
                 }
@@ -295,3 +363,5 @@ void SpawnLights(Canis::World &_world)
 
     _world.SpawnPointLight(pointLight);
 }
+
+
