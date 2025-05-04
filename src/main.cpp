@@ -141,6 +141,7 @@ int main(int argc, char* argv[])
     Canis::GLTexture grasssideTexture = Canis::LoadImageGL("assets/textures/grass_block_side.png", true);
     Canis::GLTexture grasstopTexture = Canis::LoadImageGL("assets/textures/grass_block_top.png", true);
     Canis::GLTexture stoneTexture = Canis::LoadImageGL("assets/textures/stone.png", true);
+    Canis::GLTexture flowerTexture = Canis::LoadImageGL("assets/textures/blue_orchid.png", true);
 
 for (int i = 1; i <= 5; ++i)
         g_fireTextures.push_back(Canis::LoadImageGL("assets/textures/fire_" + std::to_string(i) + ".png", true));
@@ -154,14 +155,33 @@ for (int i = 1; i <= 5; ++i)
 
     // Load Map into 3d array
     LoadMap("assets/maps/level.map");
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> chance(0, 99);
+
+    const int          targetLayer  = 2;   // zero-based “third” layer
+    const int          grassPercent = 20;  // 20% chance
     
     // Loop map and spawn objects
-    for (int y = 0; y < map.size(); y++)
-    {
-        for (int x = 0; x < map[y].size(); x++)
-        {
-            for (int z = 0; z < map[y][x].size(); z++)
-            {
+    for (int y = 0; y < (int)map.size(); ++y) {
+        for (int x = 0; x < (int)map[y].size(); ++x) {
+            for (int z = 0; z < (int)map[y][x].size(); ++z) {
+                // Randomly place grass blocks in the target layer
+                if (y == targetLayer && map[y][x][z] == 0) {
+                    int randomValue = chance(gen);
+                    if (randomValue < grassPercent) {
+                        map[y][x][z] = 3; // Grass block
+                    }
+                }
+                // Randomly place flowers in the target layer
+                if (y == targetLayer && map[y][x][z] == 0 && map[y][x][z] != 3) {
+                    int randomValue = chance(gen);
+                    if (randomValue < grassPercent) {
+                        map[y][x][z] = 9; // Flower block
+                    }
+                }
+
                 Canis::Entity entity;
                 entity.active = true;
 
@@ -258,6 +278,15 @@ for (int i = 1; i <= 5; ++i)
             g_fireLights.push_back(pl);
         }
             break;
+                case 9: // places a flower block
+                    entity.tag = "flower";
+                    entity.albedo = &flowerTexture;
+                    entity.specular = &textureSpecular;
+                    entity.model = &cubeModel;
+                    entity.shader = &shader;
+                    entity.transform.position = vec3(x + 0.0f, y + 0.0f, z + 0.0f);
+                    world.Spawn(entity);
+                    break;
                 default:
                     break;
                 }
