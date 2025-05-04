@@ -1,6 +1,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <SDL_main.h>
+#include <random>
 #endif
 
 #include <glm/glm.hpp>
@@ -45,6 +46,8 @@ int main(int argc, char* argv[])
     Canis::InputManager inputManager;
     Canis::FrameRateManager frameRateManager;
     frameRateManager.Init(60);
+
+
 
     /// SETUP WINDOW
     Canis::Window window;
@@ -95,6 +98,12 @@ int main(int argc, char* argv[])
     Canis::GLTexture glassTexture = Canis::LoadImageGL("assets/textures/glass.png", true);
     Canis::GLTexture grassTexture = Canis::LoadImageGL("assets/textures/grass.png", false);
     Canis::GLTexture textureSpecular = Canis::LoadImageGL("assets/textures/container2_specular.png", true);
+    Canis::GLTexture cobbleStoneTexture = Canis::LoadImageGL("assets/textures/cobblestone.png", true);
+    Canis::GLTexture oaklogTexture = Canis::LoadImageGL("assets/textures/oak_log.png", true);
+    Canis::GLTexture oakplanksTexture = Canis::LoadImageGL("assets/textures/oak_planks.png", true);
+    Canis::GLTexture grasssideTexture = Canis::LoadImageGL("assets/textures/grass_block_side.png", true);
+    Canis::GLTexture grasstopTexture = Canis::LoadImageGL("assets/textures/grass_block_top.png", true);
+    Canis::GLTexture stoneTexture = Canis::LoadImageGL("assets/textures/stone.png", true);
     /// End of Image Loading
 
     /// Load Models
@@ -104,7 +113,7 @@ int main(int argc, char* argv[])
 
     // Load Map into 3d array
     LoadMap("assets/maps/level.map");
-
+    
     // Loop map and spawn objects
     for (int y = 0; y < map.size(); y++)
     {
@@ -117,16 +126,25 @@ int main(int argc, char* argv[])
 
                 switch (map[y][x][z])
                 {
-                case 1: // places a glass block
-                    entity.tag = "glass";
-                    entity.albedo = &glassTexture;
+                case 1: // places a grass top block
+                    entity.tag = "stone";
+                    entity.albedo = &stoneTexture;
                     entity.specular = &textureSpecular;
                     entity.model = &cubeModel;
                     entity.shader = &shader;
                     entity.transform.position = vec3(x + 0.0f, y + 0.0f, z + 0.0f);
                     world.Spawn(entity);
                     break;
-                case 2: // places a grass block
+                case 2: // places a stone block
+                    entity.tag = "grass_top";
+                    entity.albedo = &grasstopTexture;
+                    entity.specular = &textureSpecular;
+                    entity.model = &cubeModel;
+                    entity.shader = &shader;
+                    entity.transform.position = vec3(x + 0.0f, y + 0.0f, z + 0.0f);
+                    world.Spawn(entity);
+                    break;                    
+                case 3: // places a grass block
                     entity.tag = "grass";
                     entity.albedo = &grassTexture;
                     entity.specular = &textureSpecular;
@@ -134,6 +152,42 @@ int main(int argc, char* argv[])
                     entity.shader = &grassShader;
                     entity.transform.position = vec3(x + 0.0f, y + 0.0f, z + 0.0f);
                     entity.Update = &Rotate;
+                    world.Spawn(entity);
+                    break;
+                case 4: // places a cobblestone block
+                    entity.tag = "cobblestone";
+                    entity.albedo = &cobbleStoneTexture;
+                    entity.specular = &textureSpecular;
+                    entity.model = &cubeModel;
+                    entity.shader = &shader;
+                    entity.transform.position = vec3(x + 0.0f, y + 0.0f, z + 0.0f);
+                    world.Spawn(entity);
+                    break;
+                case 5: // places a oak log block
+                    entity.tag = "oak_log";
+                    entity.albedo = &oaklogTexture;
+                    entity.specular = &textureSpecular;
+                    entity.model = &cubeModel;
+                    entity.shader = &shader;
+                    entity.transform.position = vec3(x + 0.0f, y + 0.0f, z + 0.0f);
+                    world.Spawn(entity);
+                    break;
+                case 6: // places a oak planks block
+                    entity.tag = "oak_planks";
+                    entity.albedo = &oakplanksTexture;
+                    entity.specular = &textureSpecular;
+                    entity.model = &cubeModel;
+                    entity.shader = &shader;
+                    entity.transform.position = vec3(x + 0.0f, y + 0.0f, z + 0.0f);
+                    world.Spawn(entity);
+                    break;
+                case 7: // places a glass block
+                    entity.tag = "glass";
+                    entity.albedo = &glassTexture;
+                    entity.specular = &textureSpecular;
+                    entity.model = &cubeModel;
+                    entity.shader = &shader;
+                    entity.transform.position = vec3(x + 0.0f, y + 0.0f, z + 0.0f);
                     world.Spawn(entity);
                     break;
                 default:
