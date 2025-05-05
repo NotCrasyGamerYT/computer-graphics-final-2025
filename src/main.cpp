@@ -142,6 +142,7 @@ int main(int argc, char* argv[])
     Canis::GLTexture grasstopTexture = Canis::LoadImageGL("assets/textures/grass_block_top.png", true);
     Canis::GLTexture stoneTexture = Canis::LoadImageGL("assets/textures/stone.png", true);
     Canis::GLTexture flowerTexture = Canis::LoadImageGL("assets/textures/blue_orchid.png", true);
+    Canis::GLTexture dirtTexture = Canis::LoadImageGL("assets/textures/cleaner-dirt-block.png", true);
 
 for (int i = 1; i <= 5; ++i)
         g_fireTextures.push_back(Canis::LoadImageGL("assets/textures/fire_" + std::to_string(i) + ".png", true));
@@ -160,7 +161,7 @@ for (int i = 1; i <= 5; ++i)
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> chance(0, 99);
 
-    const int          targetLayer  = 2;   // zero-based “third” layer
+    const int          targetLayer  = 4;   // zero-based “third” layer
     const int          grassPercent = 20;  // 20% chance
     
     // Loop map and spawn objects
@@ -266,21 +267,33 @@ for (int i = 1; i <= 5; ++i)
             world.Spawn(fireEnt);
 
             // Corresponding point light for flicker
-            Canis::PointLight pl;
-            pl.position   = vec3(x, y + 0.5f, z);
-            pl.ambient    = vec3(0.2f, 0.1f, 0.0f);
-            pl.diffuse    = vec3(1.0f, 0.5f, 0.2f);
-            pl.specular   = vec3(1.0f);
-            pl.constant   = 1.0f;
-            pl.linear     = 0.07f;
-            pl.quadratic  = 0.017f;
+             Canis::PointLight pl;
+            // say you want it 2 units above and 0.5 forward from the fire:
+            vec3 firePos = fireEnt.transform.position;
+
+            pl.ambient   = vec3(0.2f, 0.1f, 0.0f);
+            pl.diffuse   = vec3(1.0f, 0.6f, 0.2f);
+            pl.specular  = vec3(1.0f);
+            pl.constant  = 1.0f;
+            pl.linear    = 0.07f;
+            pl.quadratic = 0.017f;
+
             world.SpawnPointLight(pl);
-            g_fireLights.push_back(pl);
+            pl.position = firePos + vec3(0.0f, 2.0f, 0.5f);
         }
             break;
                 case 9: // places a flower block
                     entity.tag = "flower";
                     entity.albedo = &flowerTexture;
+                    entity.specular = &textureSpecular;
+                    entity.model = &cubeModel;
+                    entity.shader = &shader;
+                    entity.transform.position = vec3(x + 0.0f, y + 0.0f, z + 0.0f);
+                    world.Spawn(entity);
+                    break;
+                case 10: // places a dirt block
+                    entity.tag = "dirt";
+                    entity.albedo = &dirtTexture;
                     entity.specular = &textureSpecular;
                     entity.model = &cubeModel;
                     entity.shader = &shader;
@@ -377,17 +390,17 @@ void SpawnLights(Canis::World &_world)
 
     _world.SpawnPointLight(pointLight);
 
-    pointLight.position = vec3(0.0f, 0.0f, 1.0f);
+    pointLight.position = vec3(0.0f, 15.0f, 1.0f);
     pointLight.ambient = vec3(4.0f, 0.0f, 0.0f);
 
     _world.SpawnPointLight(pointLight);
 
-    pointLight.position = vec3(-2.0f);
+    pointLight.position = vec3(0.0f, 15.0f, 1.0f);
     pointLight.ambient = vec3(0.0f, 4.0f, 0.0f);
 
     _world.SpawnPointLight(pointLight);
 
-    pointLight.position = vec3(2.0f);
+    pointLight.position = vec3(0.0f, 15.0f, 1.0f);
     pointLight.ambient = vec3(0.0f, 0.0f, 4.0f);
 
     _world.SpawnPointLight(pointLight);
